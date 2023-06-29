@@ -1,0 +1,25 @@
+= MIT Kerberos Playground
+
+Let's play with MIT Kerberos.
+
+== Containers
+
+=== jarrydk/kdc-server
+
+Based on https://hub.docker.com/layers/library/debian/trixie/images/sha256-fae49842d07b348bf1ec0fd7e2b256f6d8885020c6b2c73e0b0e112e274ee9e0?context=explore[debian:trixie]
+
+.Port mapping
+----
+ -p 10749:749
+ -p 1088:88/udp
+----
+
+== Links
+
+- https://github.com/krb5/krb5
+- https://hub.docker.com/r/gcavalcante8808/krb5-server
+- https://github.com/criteo/kerberos-docker[kerberos-docker]
+- https://www.confluent.io/blog/containerized-testing-with-kerberos-and-ssh/[Containerized Testing with Kerberos and SSH]
+    * https://github.com/dosvath/kerberos-containers/tree/master/kdc-server
+- https://cloud.redhat.com/blog/kerberos-sidecar-container[Kerberos Sidecar Container]
+- https://blog.tomecek.net/post/kerberos-in-a-container/[Kerberos authentication in a container]
