@@ -14,6 +14,19 @@ Based on https://hub.docker.com/layers/library/debian/trixie/images/sha256-fae49
  -p 1088:88/udp
 ----
 
+.Connect to the server
+[source,bash]
+----
+podman exec -it kdc-server /bin/bash
+----
+
+.Command to run after connection to the server
+[source,bash]
+----
+kadmin.local get_principals
+----
+
+
 == Links
 
 - https://github.com/krb5/krb5
