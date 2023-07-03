@@ -26,9 +26,151 @@ podman exec -it kdc-server /bin/bash
 kadmin.local get_principals
 ----
 
+=== Non Containers
+
+=== Configure Linux Server and Client with Kerberos-Authentication (SSH and SCP authentication demo).
+
+https://www.youtube.com/watch?v=EOREiOYtd4Q
+
+.Update /etc/hosts on the server side (kdc-server) and the clinet side (kdc-client) 
+[source,bash]
+----
+sudo vi /etc/hosts
+----
+
+.Added to /etc/hosts is going to be something like
+----
+192.168.124.208	kdc-server.jarry.dk kdc
+192.168.124.222 kdc-client.jarry.dk	client
+----
+
+.Set hostname kdc-server
+[source,bash]
+----
+hostnamectl --static set-hostname kdc-server.jarry.dk
+----
+
+.Set hostname kdc-client
+[source,bash]
+----
+hostnamectl --static set-hostname kdc-client.jarry.dk
+----
+
+.Install *krb5* on the server side (kdc-server)
+[source,bash]
+----
+dnf install krb5-server krb5-workstation pam_krb5
+----
+
+.Update Config files
+- link:krb5.conf[/etc/krb5.conf]
+- link:[/var/kerberos/krb5kdc/kadm5.acl]
+- link:kdc.conf[/var/kerberos/krb5kdc/kdc.conf]
+- link:sshd_config[/etc/ssh/sshd_config]
+- link:ssh_config[/etc/ssh/ssh_config]
+
+.Create the database on the server side (kdc-server)
+[source,bash]
+----
+kdb5_util create -r JARRY.DK -s
+----
+
+==== Start services
+
+[source,bash]
+----
+systemctl start kadmin krb5kdc
+systemctl enable kadmin krb5kdc
+----
+
+==== Config Firewalld
+
+[source,bash]
+----
+firewall-cmd \
+	--add-service=kerberos \
+	--permanent
+----
+
+[source,bash]
+----
+firewall-cmd \
+	--add-service=kadmin \
+	--permanent
+----
+
+[source,bash]
+----
+firewall-cmd \
+	--reload
+----
+
+[source,bash]
+----
+firewall-cmd \
+	--list-services
+----
+
+==== kadmin.local commands
+
+.Add principal `krbuser`
+[source,bash]
+----
+kadmin.local -q "addprinc krbuser"
+----
+
+.Add principal `root/admin`
+[source,bash]
+----
+kadmin.local -q "addprinc root/admin"
+----
+
+.List principals
+[source,bash]
+----
+kadmin.local -q "listprincs"
+----
+
+.Add entry(s) to a keytab (/var/kerberos/krb5kdc/kadm5.keytab)
+[source,bash]
+----
+kadmin.local -q "ktadd -k /var/kerberos/krb5kdc/kadm5.keytab kadmin/admin"
+kadmin.local -q "ktadd -k /var/kerberos/krb5kdc/kadm5.keytab kadmin/changepw"
+----
+
+.Add principal `host/kdc-server.jarry.dk`
+[source,bash]
+----
+kadmin.local -q "addprinc -randkey host/kdc-server.jarry.dk"
+----
+
+.Add entry(s) to a keytab (/etc/krb5.keytab)
+[source,bash]
+----
+kadmin.local -q "ktadd host/kdc-server.jarry.dk"
+----
+
+==== kinit commands
+
+[source,bash]
+----
+kinit -p root/admin
+----
+
+==== klist commands
+
+[source,bash]
+----
+klist
+----
+
 
 == Links
 
+- https://web.mit.edu/kerberos/krb5-latest/doc/admin/install.html[MIT Kerberos Documentation / Installation guide]
+- https://sssd.io/docs/krb/krb-introduction.html[sssd.io / Introduction to Kerberos]
+- https://sssd.io/docs/ldap/ldap-introduction.html[sssd.io / Introduction to LDAP]
+- https://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_ldap.html[MIT Kerberos Documentation / Configuring Kerberos with OpenLDAP back-end]
 - https://github.com/krb5/krb5
 - https://hub.docker.com/r/gcavalcante8808/krb5-server
 - https://github.com/criteo/kerberos-docker[kerberos-docker]
@@ -36,3 +178,4 @@ kadmin.local get_principals
     * https://github.com/dosvath/kerberos-containers/tree/master/kdc-server
 - https://cloud.redhat.com/blog/kerberos-sidecar-container[Kerberos Sidecar Container]
 - https://blog.tomecek.net/post/kerberos-in-a-container/[Kerberos authentication in a container]
+- https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/using_kerberos[Red Hat Enterprise Linux / 7 / System-Level Authentication Guide / Chapter 11. Using Kerberos]
